@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCS Internal 1 - Practice Quiz</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #4f46e5;
+    --correct: #16a34a;
+    --wrong: #dc2626;
+    --border: #e5e7eb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fade 0.3s ease; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  h1 { font-size: 26px; margin-bottom: 10px; }
+  h2 { font-size: 20px; margin-bottom: 16px; }
+
+  .sub { color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+
+  button {
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    transition: 0.15s;
+  }
+
+  .btn-main {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+    font-weight: 600;
+  }
+  .btn-main:hover { opacity: 0.9; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  /* progress bar */
+  .progress-wrap {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .question {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 2px solid var(--border);
+    color: var(--text);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    line-height: 1.4;
+  }
+  .option:hover:not(:disabled) { border-color: var(--accent); }
+  .option:disabled { cursor: default; }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: #f0fdf4;
+    color: var(--correct);
+    font-weight: 600;
+  }
+  .option.wrong {
+    border-color: var(--wrong);
+    background: #fef2f2;
+    color: var(--wrong);
+  }
+
+  .score-big {
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    margin: 10px 0;
+  }
+  .score-label { text-align: center; color: var(--muted); margin-bottom: 24px; }
+
+  .review-item {
+    border-top: 1px solid var(--border);
+    padding: 14px 0;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .review-item .q { font-weight: 600; margin-bottom: 6px; }
+  .review-item .yours { color: var(--wrong); }
+  .review-item .right { color: var(--correct); }
+
+  .review-title { margin: 24px 0 6px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SCREEN 1: START -->
+  <div class="screen active" id="startScreen">
+    <div class="card">
+      <h1>PCS Internal 1</h1>
+      <p class="sub">
+        Professional Communication Skills &middot; 26PCS116<br>
+        Module 1: Phonetics &amp; Indianisms &nbsp;|&nbsp; Module 2: The 7 C's
+      </p>
+      <button class="btn-main" onclick="startQuiz()">Start Quiz</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: QUIZ -->
+  <div class="screen" id="quizScreen">
+    <div class="card">
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="meta">
+        <span id="qCounter">Question 1 of 50</span>
+        <span id="scoreCounter">Score: 0</span>
+      </div>
+      <div class="question" id="questionText"></div>
+      <div id="optionsBox"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: RESULTS -->
+  <div class="screen" id="resultScreen">
+    <div class="card">
+      <h2>Your Score</h2>
+      <div class="score-big" id="finalScore">0%</div>
+      <div class="score-label" id="finalLabel"></div>
+      <button class="btn-main" onclick="startQuiz()">Try Again</button>
+      <button class="btn-ghost" onclick="retryWrong()" id="retryBtn">Reattempt Wrong Questions</button>
+      <div id="reviewBox"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   PART 1: THE QUESTION BANK
+   Each question is an object with:
+     q       -> the question text
+     options -> the four choices
+     answer  -> the INDEX of the correct option (0 = first, 1 = second, ...)
+   ============================================================ */
+
+const ALL_QUESTIONS = [
+  { q: "How many vowel SOUNDS does English have?", options: ["5", "12", "20", "24"], answer: 2 },
+  { q: "How many vowel LETTERS does English have?", options: ["5", "8", "12", "20"], answer: 0 },
+  { q: "How many pure vowel sounds are there in English?", options: ["8", "12", "20", "24"], answer: 1 },
+  { q: "How many diphthongs are there in English?", options: ["5", "7", "8", "12"], answer: 2 },
+  { q: "How many consonant sounds are there in English?", options: ["20", "21", "24", "26"], answer: 2 },
+  { q: "A vowel sound is produced with...", options: ["A complete blockage of air", "An open mouth and free airflow", "The tongue touching the roof", "The lips pressed together"], answer: 1 },
+  { q: "Which of these is a checked vowel?", options: ["/i:/", "/u:/", "/ae/", "/a:/"], answer: 2 },
+  { q: "How many checked vowels are there?", options: ["5", "7", "8", "12"], answer: 1 },
+  { q: "How many free vowels are there?", options: ["5", "7", "8", "12"], answer: 0 },
+  { q: "Which vowel sound appears in the word 'see'?", options: ["/i:/", "/I/", "/e/", "/ae/"], answer: 0 },
+  { q: "Which vowel sound appears in the word 'cat'?", options: ["/e/", "/ae/", "/A/", "/a:/"], answer: 1 },
+  { q: "Which vowel sound appears in the word 'door'?", options: ["/D/", "/o/", "/o:/", "/u:/"], answer: 2 },
+  { q: "Which vowel sound appears in the word 'moon'?", options: ["/u/", "/u:/", "/U/", "/o:/"], answer: 1 },
+  { q: "The schwa /e/ is the most common vowel sound in English. Where does it appear?", options: ["In stressed syllables", "In weak, unstressed syllables", "Only at the start of words", "Only in long words"], answer: 1 },
+  { q: "In the word 'vendor' /'vende/, the final sound is...", options: ["A diphthong", "A free vowel", "The schwa /e/", "A consonant"], answer: 2 },
+  { q: "Which mark appears on all 5 free vowels?", options: ["A dot", "A long mark (:)", "A slash", "A stress mark"], answer: 1 },
+  { q: "Which of these is a free vowel?", options: ["/I/", "/e/", "/ae/", "/a:/"], answer: 3 },
+  { q: "A diphthong is best described as...", options: ["A single steady vowel", "Two vowel sounds blending into one gliding sound", "A vowel followed by a consonant", "A silent letter"], answer: 1 },
+  { q: "Closing diphthongs glide towards which sounds?", options: ["/I/ or /U/", "/e/ only", "/a:/ and /o:/", "/i:/ and /u:/"], answer: 0 },
+  { q: "Centring diphthongs glide towards which sound?", options: ["/I/", "/U/", "/e/", "/a:/"], answer: 2 },
+  { q: "Which word contains a diphthong?", options: ["cat", "eye", "sit", "book"], answer: 1 },
+  { q: "The word 'done' has which vowel sound?", options: ["The long /o:/", "The short /A/", "The diphthong /eI/", "The schwa /e/"], answer: 1 },
+  { q: "A consonant sound is produced by...", options: ["Free airflow with no obstruction", "Partial or complete obstruction of air", "Only the lips", "Only the throat"], answer: 1 },
+  { q: "In /p/ as in 'pen', how is the air obstructed?", options: ["Both lips close completely", "Air squeezes through a narrow gap", "The tongue touches the teeth", "Air is blocked in the throat"], answer: 0 },
+  { q: "In /s/ as in 'sun', how is the air obstructed?", options: ["Both lips close completely", "Air squeezes through a narrow gap", "The vocal cords stop", "The nose is blocked"], answer: 1 },
+  { q: "In /h/ as in 'hat', how is the air obstructed?", options: ["By the lips", "By the teeth", "Partly in the throat", "By the tongue tip"], answer: 2 },
+  { q: "Phonetic symbols are written between...", options: ["Square brackets", "Slanted lines / /", "Round brackets", "Quotation marks"], answer: 1 },
+  { q: "Phonetic symbols show...", options: ["Spellings", "Sounds", "Syllables", "Meanings"], answer: 1 },
+  { q: "The words 'see', 'sea' and 'key' all share which vowel sound?", options: ["/i:/", "/I/", "/eI/", "/aI/"], answer: 0 },
+  { q: "The number of letters in a word is often different from...", options: ["Its meaning", "The number of sounds", "Its syllables", "Its stress"], answer: 1 },
+  { q: "Indianisms are best defined as...", options: ["Errors only Indians make", "Words or phrases typical of Indian English, non-standard elsewhere", "Formal British English", "Slang used only by students"], answer: 1 },
+  { q: "Which of these is an Indianism?", options: ["Postpone the meeting", "Prepone the meeting", "Reschedule the meeting", "Cancel the meeting"], answer: 1 },
+  { q: "'Out of station' means...", options: ["Out of town", "Out of order", "Off duty", "Out of reach"], answer: 0 },
+  { q: "'Cousin brother' is an Indianism because...", options: ["It is grammatically perfect", "Standard English uses just 'cousin'", "It refers to a friend", "It is a formal term"], answer: 1 },
+  { q: "Which is the standard English version of 'Please do the needful'?", options: ["Please do it fast", "Please do what is necessary", "Please do your duty", "Please do the work"], answer: 1 },
+  { q: "Which is the standard English version of 'My mother said me to go'?", options: ["My mother said to me go", "My mother told me to go", "My mother said me go", "My mother tells me go"], answer: 1 },
+  { q: "'I am having a lot of work' should be...", options: ["I have a lot of work", "I am having works", "I had a lot of work", "I have lot of work"], answer: 0 },
+  { q: "'Shut the fan' should be...", options: ["Close the fan", "Turn off the fan", "Stop the fan", "Cut the fan"], answer: 1 },
+  { q: "'What is your good name?' should be...", options: ["What is your nice name?", "What is your name?", "What is your full name?", "What is your good name, please?"], answer: 1 },
+  { q: "'I passed out of college' should be...", options: ["I passed from college", "I graduated from college", "I came out of college", "I completed college out"], answer: 1 },
+  { q: "'I have a doubt' should be...", options: ["I have a question", "I have a confusion", "I have a problem", "I have a thought"], answer: 0 },
+  { q: "Which of these is a redundant Indianism?", options: ["Reply", "Reply back", "Answer", "Respond"], answer: 1 },
+  { q: "'ATM machine' is an example of...", options: ["A diphthong", "Redundant phrasing", "Correct English", "A grammar error"], answer: 1 },
+  { q: "Which is a main reason Indianisms occur?", options: ["Poor intelligence", "Literal translation from Indian languages", "Lack of schooling", "Fast speech"], answer: 1 },
+  { q: "How many C's are there in the 7 C's of Communication?", options: ["5", "6", "7", "8"], answer: 2 },
+  { q: "Which C means 'focus on one main idea and use simple words'?", options: ["Conciseness", "Clarity", "Courtesy", "Completeness"], answer: 1 },
+  { q: "Which C means 'say what is needed in the fewest words'?", options: ["Clarity", "Concreteness", "Conciseness", "Correctness"], answer: 2 },
+  { q: "Which C means 'support your points with facts, figures and examples'?", options: ["Concreteness", "Consideration", "Courtesy", "Clarity"], answer: 0 },
+  { q: "Which C means 'think from the receiver's point of view'?", options: ["Correctness", "Completeness", "Consideration", "Conciseness"], answer: 2 },
+  { q: "'Sales rose 12% in Q2' is a good example of which C?", options: ["Clarity", "Concreteness", "Courtesy", "Completeness"], answer: 1 }
+];
+
+/* ============================================================
+   PART 2: THE STATE (what the app remembers while you play)
+   ============================================================ */
+
+let quizQuestions = [];   // the questions for THIS attempt
+let currentIndex = 0;     // which question we're on
+let score = 0;            // how many correct
+let locked = false;       // stops double-clicking an option
+let userAnswers = [];     // record of every answer given
+
+/* ============================================================
+   PART 3: THE FUNCTIONS (the app's behaviour)
+   ============================================================ */
+
+// Show one screen and hide the others
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Shuffle an array (Fisher-Yates). Returns a NEW shuffled copy.
+function shuffleArray(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// Begin a fresh quiz with all questions
+function startQuiz() {
+  quizQuestions = shuffleArray(ALL_QUESTIONS);
+  currentIndex = 0;
+  score = 0;
+  userAnswers = [];
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+// Begin a quiz using only the questions answered wrongly last time
+function retryWrong() {
+  const wrongOnes = userAnswers.filter(a => !a.isCorrect).map(a => a.question);
+  if (wrongOnes.length === 0) {
+    alert("You got everything right last time. Nothing to reattempt!");
+    return;
+  }
+  quizQuestions = shuffleArray(wrongOnes);
+  currentIndex = 0;
+  score = 0;
+  userAnswers = [];
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+// Draw the current question and its options on screen
+function renderQuestion() {
+  locked = false;
+  const q = quizQuestions[currentIndex];
+
+  // progress bar and counters
+  const percent = (currentIndex / quizQuestions.length) * 100;
+  document.getElementById('progressBar').style.width = percent + '%';
+  document.getElementById('qCounter').textContent =
+    'Question ' + (currentIndex + 1) + ' of ' + quizQuestions.length;
+  document.getElementById('scoreCounter').textContent = 'Score: ' + score;
+
+  // the question text
+  document.getElementById('questionText').textContent = q.q;
+
+  // build the four option buttons
+  const box = document.getElementById('optionsBox');
+  box.innerHTML = '';
+  q.options.forEach((optText, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = optText;
+    btn.onclick = () => handleOptionSelect(idx, btn);
+    box.appendChild(btn);
+  });
+}
+
+// Runs when the user clicks an option
+function handleOptionSelect(idx, btn) {
+  if (locked) return;          // already answered this one
+  locked = true;
+
+  const q = quizQuestions[currentIndex];
+  const isCorrect = (idx === q.answer);
+
+  if (isCorrect) score++;
+
+  // colour every option: green for the right one, red for a wrong pick
+  const allButtons = document.querySelectorAll('#optionsBox .option');
+  allButtons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+    if (i === idx && !isCorrect) b.classList.add('wrong');
+  });
+
+  // remember what happened
+  userAnswers.push({
+    question: q,
+    chosenIndex: idx,
+    isCorrect: isCorrect
+  });
+
+  document.getElementById('scoreCounter').textContent = 'Score: ' + score;
+
+  // short pause so the user sees the colours, then move on
+  setTimeout(() => {
+    currentIndex++;
+    if (currentIndex < quizQuestions.length) {
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  }, 900);
+}
+
+// Build and show the results screen
+function showResults() {
+  const total = quizQuestions.length;
+  const percent = Math.round((score / total) * 100);
+
+  document.getElementById('finalScore').textContent = percent + '%';
+  document.getElementById('finalLabel').textContent =
+    score + ' out of ' + total + ' correct';
+
+  // hide the reattempt button if nothing was wrong
+  const wrongCount = userAnswers.filter(a => !a.isCorrect).length;
+  document.getElementById('retryBtn').style.display = wrongCount ? 'block' : 'none';
+
+  // list the mistakes for review
+  const reviewBox = document.getElementById('reviewBox');
+  reviewBox.innerHTML = '';
+  const wrongOnes = userAnswers.filter(a => !a.isCorrect);
+
+  if (wrongOnes.length > 0) {
+    const heading = document.createElement('div');
+    heading.className = 'review-title';
+    heading.innerHTML = '<strong>Review your mistakes</strong>';
+    reviewBox.appendChild(heading);
+
+    wrongOnes.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'review-item';
+      div.innerHTML =
+        '<div class="q">' + a.question.q + '</div>' +
+        '<div class="yours">You chose: ' + a.question.options[a.chosenIndex] + '</div>' +
+        '<div class="right">Correct: ' + a.question.options[a.question.answer] + '</div>';
+      reviewBox.appendChild(div);
+    });
+  }
+
+  showScreen('resultScreen');
+}
+</script>
+
+</body>
+</html>
